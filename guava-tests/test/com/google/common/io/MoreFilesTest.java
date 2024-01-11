@@ -16,6 +16,7 @@
 
 package com.google.common.io;
 
+import static com.google.common.base.StandardSystemProperty.OS_NAME;
 import static com.google.common.io.RecursiveDeleteOption.ALLOW_INSECURE;
 import static com.google.common.jimfs.Feature.SECURE_DIRECTORY_STREAM;
 import static com.google.common.jimfs.Feature.SYMBOLIC_LINKS;
@@ -34,6 +35,7 @@ import java.nio.file.FileSystemException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -300,6 +302,9 @@ public class MoreFilesTest extends TestCase {
   }
 
   public void testCreateParentDirectories_noPermission() {
+    if (isWindows()) {
+      return; // TODO: b/136041958 - Create/find a directory that we don't have permissions on?
+    }
     Path file = root().resolve("parent/nonexistent.file");
     Path parent = file.getParent();
     assertFalse(Files.exists(parent));
@@ -556,6 +561,17 @@ public class MoreFilesTest extends TestCase {
     }
   }
 
+  public void testDeleteRecursively_nonexistingFile_throwsNoSuchFileException() throws IOException {
+    try (FileSystem fs = newTestFileSystem()) {
+      try {
+        MoreFiles.deleteRecursively(fs.getPath("/work/nothere"), ALLOW_INSECURE);
+        fail();
+      } catch (NoSuchFileException expected) {
+        assertThat(expected.getFile()).isEqualTo("/work/nothere");
+      }
+    }
+  }
+
   public void testDeleteDirectoryContents_symlinkToDir_sdsNotSupported_allowInsecure()
       throws IOException {
     try (FileSystem fs = newTestFileSystem()) {
@@ -649,7 +665,7 @@ public class MoreFilesTest extends TestCase {
    */
   private static void startDirectorySymlinkSwitching(
       final Path file, final Path target, ExecutorService executor) {
-    @SuppressWarnings("unused") // go/futurereturn-lsc
+    @SuppressWarnings("unused") // https://errorprone.info/bugpattern/FutureReturnValueIgnored
     Future<?> possiblyIgnoredError =
         executor.submit(
             new Runnable() {
@@ -708,5 +724,9 @@ public class MoreFilesTest extends TestCase {
     public abstract void delete(Path path, RecursiveDeleteOption... options) throws IOException;
 
     public abstract void assertDeleteSucceeded(Path path) throws IOException;
+  }
+
+  private static boolean isWindows() {
+    return OS_NAME.value().startsWith("Windows");
   }
 }

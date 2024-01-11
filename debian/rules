@@ -1,5 +1,7 @@
 #!/usr/bin/make -f
 
+include /usr/share/dpkg/pkg-info.mk
+
 export JAVA_HOME = /usr/lib/jvm/default-java
 
 %:
@@ -8,7 +10,4 @@ export JAVA_HOME = /usr/lib/jvm/default-java
 override_dh_auto_build:
 	cp -Rvp futures/failureaccess/src/com/google/common/util/concurrent/internal guava/src/com/google/common/util/concurrent/
 	dh_auto_build
-	zip -d ./guava/target/guava-29.0-jre.jar 'org/checkerframework/*' 'com/google/j2objc/annotations/*' 'com/google/errorprone/annotations/*'
-
-get-orig-source:
-	-uscan --download-current-version --force-download --repack --compression xz
+	zip -d ./guava/target/guava-${DEB_VERSION_UPSTREAM}-jre.jar 'org/checkerframework/*' 'com/google/j2objc/annotations/*'

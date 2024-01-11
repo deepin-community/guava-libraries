@@ -3,7 +3,7 @@ Author: Emmanuel Bourg <ebourg@apache.org>
 Forwarded: not-needed
 --- a/guava/src/com/google/common/util/concurrent/Futures.java
 +++ b/guava/src/com/google/common/util/concurrent/Futures.java
-@@ -1015,6 +1015,52 @@
+@@ -1056,6 +1056,52 @@
     * computation is {@linkplain java.util.concurrent.Future#isDone() complete} or, if the
     * computation is already complete, immediately.
     *

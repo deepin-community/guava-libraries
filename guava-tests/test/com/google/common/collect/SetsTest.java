@@ -73,6 +73,8 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.function.BiConsumer;
+import java.util.stream.Collector;
 import java.util.stream.Stream;
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -326,6 +328,7 @@ public class SetsTest extends TestCase {
     D
   }
 
+  @SuppressWarnings("DoNotCall")
   public void testImmutableEnumSet() {
     Set<SomeEnum> units = Sets.immutableEnumSet(SomeEnum.D, SomeEnum.B);
 
@@ -351,6 +354,23 @@ public class SetsTest extends TestCase {
   public void testToImmutableEnumSetEmpty() {
     Set<SomeEnum> units = Stream.<SomeEnum>empty().collect(Sets.toImmutableEnumSet());
     assertThat(units).isEmpty();
+  }
+
+  public <A> void testToImmutableEnumSetReused() {
+    // An unchecked cast lets us refer to the accumulator as an A and invoke the callbacks manually
+    @SuppressWarnings("unchecked")
+    Collector<SomeEnum, A, ImmutableSet<SomeEnum>> collector =
+        (Collector) Sets.<SomeEnum>toImmutableEnumSet();
+    A accumulator = collector.supplier().get();
+    BiConsumer<A, SomeEnum> adder = collector.accumulator();
+    adder.accept(accumulator, SomeEnum.A);
+    adder.accept(accumulator, SomeEnum.B);
+    ImmutableSet<SomeEnum> set = collector.finisher().apply(accumulator);
+    assertThat(set).containsExactly(SomeEnum.A, SomeEnum.B);
+
+    // Subsequent manual manipulation of the accumulator must not affect the state of the built set
+    adder.accept(accumulator, SomeEnum.C);
+    assertThat(set).containsExactly(SomeEnum.A, SomeEnum.B);
   }
 
   @GwtIncompatible // SerializableTester
@@ -589,48 +609,56 @@ public class SetsTest extends TestCase {
     verifySetContents(set, SOME_COLLECTION);
   }
 
+  @GwtIncompatible // complementOf
   public void testComplementOfEnumSet() {
     Set<SomeEnum> units = EnumSet.of(SomeEnum.B, SomeEnum.D);
     EnumSet<SomeEnum> otherUnits = Sets.complementOf(units);
     verifySetContents(otherUnits, EnumSet.of(SomeEnum.A, SomeEnum.C));
   }
 
+  @GwtIncompatible // complementOf
   public void testComplementOfEnumSetWithType() {
     Set<SomeEnum> units = EnumSet.of(SomeEnum.B, SomeEnum.D);
     EnumSet<SomeEnum> otherUnits = Sets.complementOf(units, SomeEnum.class);
     verifySetContents(otherUnits, EnumSet.of(SomeEnum.A, SomeEnum.C));
   }
 
+  @GwtIncompatible // complementOf
   public void testComplementOfRegularSet() {
     Set<SomeEnum> units = Sets.newHashSet(SomeEnum.B, SomeEnum.D);
     EnumSet<SomeEnum> otherUnits = Sets.complementOf(units);
     verifySetContents(otherUnits, EnumSet.of(SomeEnum.A, SomeEnum.C));
   }
 
+  @GwtIncompatible // complementOf
   public void testComplementOfRegularSetWithType() {
     Set<SomeEnum> units = Sets.newHashSet(SomeEnum.B, SomeEnum.D);
     EnumSet<SomeEnum> otherUnits = Sets.complementOf(units, SomeEnum.class);
     verifySetContents(otherUnits, EnumSet.of(SomeEnum.A, SomeEnum.C));
   }
 
+  @GwtIncompatible // complementOf
   public void testComplementOfEmptySet() {
     Set<SomeEnum> noUnits = Collections.emptySet();
     EnumSet<SomeEnum> allUnits = Sets.complementOf(noUnits, SomeEnum.class);
     verifySetContents(EnumSet.allOf(SomeEnum.class), allUnits);
   }
 
+  @GwtIncompatible // complementOf
   public void testComplementOfFullSet() {
     Set<SomeEnum> allUnits = Sets.newHashSet(SomeEnum.values());
     EnumSet<SomeEnum> noUnits = Sets.complementOf(allUnits, SomeEnum.class);
     verifySetContents(noUnits, EnumSet.noneOf(SomeEnum.class));
   }
 
+  @GwtIncompatible // complementOf
   public void testComplementOfEmptyEnumSetWithoutType() {
     Set<SomeEnum> noUnits = EnumSet.noneOf(SomeEnum.class);
     EnumSet<SomeEnum> allUnits = Sets.complementOf(noUnits);
     verifySetContents(allUnits, EnumSet.allOf(SomeEnum.class));
   }
 
+  @GwtIncompatible // complementOf
   public void testComplementOfEmptySetWithoutTypeDoesntWork() {
     Set<SomeEnum> set = Collections.emptySet();
     try {
@@ -961,6 +989,13 @@ public class SetsTest extends TestCase {
     }
   }
 
+  public void testPowerSetEquals_independentOfOrder() {
+    ImmutableSet<Integer> elements = ImmutableSet.of(1, 2, 3, 4);
+    Set<Set<Integer>> forward = powerSet(elements);
+    Set<Set<Integer>> reverse = powerSet(ImmutableSet.copyOf(elements.asList().reverse()));
+    new EqualsTester().addEqualityGroup(forward, reverse).testEquals();
+  }
+
   /**
    * Test that a hash code miscomputed by "input.hashCode() * tooFarValue / 2" is correct under our
    * {@code hashCode} implementation.
@@ -1117,7 +1152,7 @@ public class SetsTest extends TestCase {
     }
 
     @Override
-    public boolean equals(Object other) {
+    public boolean equals(@Nullable Object other) {
       if (other == null) {
         return false;
       } else if (other instanceof Base) {

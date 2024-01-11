@@ -1,3 +1,30 @@
+guava-libraries (32.0.1-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream version 32.0.1 (Closes: #1038979)
+    Addresses insecure temp directory creation
+    See: CVE-2020-8908 CVE-2023-2976
+  * Bump Standards-Version to 4.6.2 (no changes)
+  * Freshen years in debian/copyright
+  * Remove 04-source-encoding.patch; applied upstream
+  * Refresh remaining patches for upstream 32.0.1
+  * Ignore com.google.errorprone:error_prone_core
+  * Patch out reference to com.google.errorprone:error_prone_core
+  * Remove get-orig-source target from debian/rules
+  * Update debian/rules to use DEB_VERSION_UPSTREAM
+  * Update debian/watch to use xz compression
+
+ -- tony mancill <tmancill@debian.org>  Fri, 23 Jun 2023 22:27:47 -0700
+
+guava-libraries (31.1-1) unstable; urgency=medium
+
+  * New upstream release
+    - Refreshed the patches
+  * Depend on liberror-prone-java instead of adding the annotations source files
+  * Standards-Version updated to 4.6.1
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Mon, 12 Dec 2022 18:38:25 +0100
+
 guava-libraries (29.0-6) unstable; urgency=medium
 
   * Team upload.

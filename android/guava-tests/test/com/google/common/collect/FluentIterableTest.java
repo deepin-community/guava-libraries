@@ -40,7 +40,7 @@ import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
-import org.checkerframework.checker.nullness.compatqual.NullableDecl;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Unit test for {@link FluentIterable}.
@@ -76,7 +76,7 @@ public class FluentIterableTest extends TestCase {
         Lists.newArrayList(FluentIterable.from(ImmutableList.of(1, 2, 3, 4))));
   }
 
-  @SuppressWarnings({"deprecation", "DoNotCall"}) // test of deprecated method
+  @SuppressWarnings("deprecation") // test of deprecated method
   public void testFrom_alreadyFluentIterable() {
     FluentIterable<Integer> iterable = FluentIterable.from(asList(1));
     assertSame(iterable, FluentIterable.from(iterable));
@@ -850,7 +850,7 @@ public class FluentIterableTest extends TestCase {
               .uniqueIndex(
                   new Function<Integer, Object>() {
                     @Override
-                    public Object apply(@NullableDecl Integer input) {
+                    public Object apply(@Nullable Integer input) {
                       return String.valueOf(input);
                     }
                   });

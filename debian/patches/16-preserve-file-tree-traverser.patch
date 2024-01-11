@@ -3,12 +3,52 @@ Author: Emmanuel Bourg <ebourg@apache.org>
 Forwarded: not-needed
 --- a/guava/src/com/google/common/io/Files.java
 +++ b/guava/src/com/google/common/io/Files.java
-@@ -933,7 +933,7 @@
-    *     {@link #fileTraverser()} instead with the same semantics as this method.
-    */
-   @Deprecated
--  static TreeTraverser<File> fileTreeTraverser() {
-+  public static TreeTraverser<File> fileTreeTraverser() {
-     return FILE_TREE_TRAVERSER;
+@@ -824,6 +824,48 @@
    }
  
+   /**
++   * Returns a {@link TreeTraverser} instance for {@link File} trees.
++   *
++   * <p><b>Warning:</b> {@code File} provides no support for symbolic links, and as such there is no
++   * way to ensure that a symbolic link to a directory is not followed when traversing the tree. In
++   * this case, iterables created by this traverser could contain files that are outside of the
++   * given directory or even be infinite if there is a symbolic link loop.
++   *
++   * @since 15.0
++   * @deprecated The returned {@link TreeTraverser} type is deprecated. Use the replacement method
++   *     {@link #fileTraverser()} instead with the same semantics as this method.
++   */
++  @Deprecated
++  public static com.google.common.collect.TreeTraverser<File> fileTreeTraverser() {
++    return FILE_TREE_TRAVERSER;
++  }
++
++  private static final com.google.common.collect.TreeTraverser<File> FILE_TREE_TRAVERSER =
++      new com.google.common.collect.TreeTraverser<File>() {
++        @Override
++        public Iterable<File> children(File file) {
++          return fileTreeChildren(file);
++        }
++
++        @Override
++        public String toString() {
++          return "Files.fileTreeTraverser()";
++        }
++      };
++
++  private static Iterable<File> fileTreeChildren(File file) {
++    // check isDirectory() just because it may be faster than listFiles() on a non-directory
++    if (file.isDirectory()) {
++      File[] files = file.listFiles();
++      if (files != null) {
++        return Collections.unmodifiableList(Arrays.asList(files));
++      }
++    }
++
++    return Collections.emptyList();
++  }
++
++  /**
+    * Returns the lexically cleaned form of the path name, <i>usually</i> (but not always) equivalent
+    * to the original. The following heuristics are used:
+    *

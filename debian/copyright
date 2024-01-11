@@ -6,14 +6,15 @@ Comment: Upstream authors:
  Kevin Bourrillion, Jared Levy, Mike Bostock, Jesse Wilson.
 
 Files: *
-Copyright: 2007-2015, Google Inc.
+Copyright: 2007-2023, Google Inc.
 License: Apache-2.0
 
 Files: debian/*
 Copyright: 2008-2010, Torsten Werner <twerner@debian.org>,
            2009, Ludovic Claude <ludovic.claude@laposte.net>
            2011-2012, Miguel Landaeta <nomadium@debian.org>
-           2013-2015, Emmanuel Bourg <ebourg@apache.org>
+           2013-2023, Emmanuel Bourg <ebourg@apache.org>
+           2013-2023, tony mancill <tmancill@debian.org>
 License: Apache-2.0
 
 License: Apache-2.0

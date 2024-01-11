@@ -23,6 +23,7 @@ import static junit.framework.Assert.assertTrue;
 
 import com.google.common.annotations.GwtCompatible;
 import com.google.common.annotations.GwtIncompatible;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -39,17 +40,18 @@ import java.util.Map.Entry;
 import java.util.Set;
 import junit.framework.Assert;
 import junit.framework.AssertionFailedError;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 @GwtCompatible(emulated = true)
 public class Helpers {
   // Clone of Objects.equal
-  static boolean equal(Object a, Object b) {
+  static boolean equal(@Nullable Object a, @Nullable Object b) {
     return a == b || (a != null && a.equals(b));
   }
 
   // Clone of Lists.newArrayList
   public static <E> List<E> copyToList(Iterable<? extends E> elements) {
-    List<E> list = new ArrayList<E>();
+    List<E> list = new ArrayList<>();
     addAll(list, elements);
     return list;
   }
@@ -60,7 +62,7 @@ public class Helpers {
 
   // Clone of Sets.newLinkedHashSet
   public static <E> Set<E> copyToSet(Iterable<? extends E> elements) {
-    Set<E> set = new LinkedHashSet<E>();
+    Set<E> set = new LinkedHashSet<>();
     addAll(set, elements);
     return set;
   }
@@ -180,6 +182,7 @@ public class Helpers {
     }
   }
 
+  @CanIgnoreReturnValue
   public static <E> boolean addAll(Collection<E> addTo, Iterable<? extends E> elementsToAdd) {
     boolean modified = false;
     for (E e : elementsToAdd) {
@@ -188,11 +191,11 @@ public class Helpers {
     return modified;
   }
 
-  static <T> Iterable<T> reverse(final List<T> list) {
+  static <T> Iterable<T> reverse(List<T> list) {
     return new Iterable<T>() {
       @Override
       public Iterator<T> iterator() {
-        final ListIterator<T> listIter = list.listIterator(list.size());
+        ListIterator<T> listIter = list.listIterator(list.size());
         return new Iterator<T>() {
           @Override
           public boolean hasNext() {
@@ -213,7 +216,7 @@ public class Helpers {
     };
   }
 
-  static <T> Iterator<T> cycle(final Iterable<T> iterable) {
+  static <T> Iterator<T> cycle(Iterable<T> iterable) {
     return new Iterator<T>() {
       Iterator<T> iterator = Collections.<T>emptySet().iterator();
 
@@ -250,17 +253,25 @@ public class Helpers {
     throw assertionFailedError;
   }
 
-  public static <K, V> Comparator<Entry<K, V>> entryComparator(
-      final Comparator<? super K> keyComparator) {
-    return new Comparator<Entry<K, V>>() {
-      @Override
-      @SuppressWarnings("unchecked") // no less safe than putting it in the map!
-      public int compare(Entry<K, V> a, Entry<K, V> b) {
+  private static class EntryComparator<K, V> implements Comparator<Entry<K, V>> {
+    final @Nullable Comparator<? super K> keyComparator;
+
+    public EntryComparator(@Nullable Comparator<? super K> keyComparator) {
+      this.keyComparator = keyComparator;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked") // no less safe than putting it in the map!
+    public int compare(Entry<K, V> a, Entry<K, V> b) {
         return (keyComparator == null)
             ? ((Comparable) a.getKey()).compareTo(b.getKey())
             : keyComparator.compare(a.getKey(), b.getKey());
-      }
-    };
+    }
+  }
+
+  public static <K, V> Comparator<Entry<K, V>> entryComparator(
+      @Nullable Comparator<? super K> keyComparator) {
+    return new EntryComparator<K, V>(keyComparator);
   }
 
   /**
@@ -345,7 +356,7 @@ public class Helpers {
    * @param delta the difference between the true size of the collection and the values returned by
    *     the size method
    */
-  public static <T> Collection<T> misleadingSizeCollection(final int delta) {
+  public static <T> Collection<T> misleadingSizeCollection(int delta) {
     // It would be nice to be able to return a real concurrent
     // collection like ConcurrentLinkedQueue, so that e.g. concurrent
     // iteration would work, but that would not be GWT-compatible.
@@ -363,7 +374,7 @@ public class Helpers {
    * equals. This is used for testing unmodifiable collections of map entries; for example, it
    * should not be possible to access the raw (modifiable) map entry via a nefarious equals method.
    */
-  public static <K, V> Entry<K, V> nefariousMapEntry(final K key, final V value) {
+  public static <K, V> Entry<K, V> nefariousMapEntry(K key, V value) {
     return new Entry<K, V>() {
       @Override
       public K getKey() {
@@ -382,7 +393,7 @@ public class Helpers {
 
       @SuppressWarnings("unchecked")
       @Override
-      public boolean equals(Object o) {
+      public boolean equals(@Nullable Object o) {
         if (o instanceof Entry) {
           Entry<K, V> e = (Entry<K, V>) o;
           e.setValue(value); // muhahaha!
@@ -410,7 +421,7 @@ public class Helpers {
     if (iterable instanceof List) {
       return (List<E>) iterable;
     }
-    List<E> list = new ArrayList<E>();
+    List<E> list = new ArrayList<>();
     for (E e : iterable) {
       list.add(e);
     }
@@ -460,7 +471,7 @@ public class Helpers {
     }
 
     @Override
-    public int compare(String lhs, String rhs) {
+    public int compare(@Nullable String lhs, @Nullable String rhs) {
       if (lhs == rhs) {
         return 0;
       }
@@ -484,7 +495,7 @@ public class Helpers {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(@Nullable Object obj) {
       if (obj instanceof NullsBefore) {
         NullsBefore other = (NullsBefore) obj;
         return justAfterNull.equals(other.justAfterNull);

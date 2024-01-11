@@ -274,6 +274,14 @@ public class SequentialExecutorTest extends TestCase {
     assertEquals(1, numCalls.get());
   }
 
+  /*
+   * Under Android, MyError propagates up and fails the test?
+   *
+   * TODO(b/218700094): Does this matter to prod users, or is it just a feature of our testing
+   * environment? If the latter, maybe write a custom Executor that avoids failing the test when it
+   * sees an Error?
+   */
+  @AndroidIncompatible
   public void testTaskThrowsError() throws Exception {
     class MyError extends Error {}
     final CyclicBarrier barrier = new CyclicBarrier(2);
@@ -302,7 +310,7 @@ public class SequentialExecutorTest extends TestCase {
       executor.execute(errorTask);
       service.execute(barrierTask); // submit directly to the service
       // the barrier task runs after the error task so we know that the error has been observed by
-      // SequentialExecutor by the time the barrier is satified
+      // SequentialExecutor by the time the barrier is satisfied
       barrier.await(1, TimeUnit.SECONDS);
       executor.execute(barrierTask);
       // timeout means the second task wasn't even tried
@@ -351,10 +359,15 @@ public class SequentialExecutorTest extends TestCase {
   }
 
   public void testToString() {
-    Executor delegate =
+    final Runnable[] currentTask = new Runnable[1];
+    final Executor delegate =
         new Executor() {
           @Override
-          public void execute(Runnable task) {}
+          public void execute(Runnable task) {
+            currentTask[0] = task;
+            task.run();
+            currentTask[0] = null;
+          }
 
           @Override
           public String toString() {
@@ -365,5 +378,19 @@ public class SequentialExecutorTest extends TestCase {
     Executor sequential2 = newSequentialExecutor(delegate);
     assertThat(sequential1.toString()).contains("theDelegate");
     assertThat(sequential1.toString()).isNotEqualTo(sequential2.toString());
+    final String[] whileRunningToString = new String[1];
+    sequential1.execute(
+        new Runnable() {
+          @Override
+          public void run() {
+            whileRunningToString[0] = "" + currentTask[0];
+          }
+
+          @Override
+          public String toString() {
+            return "my runnable's toString";
+          }
+        });
+    assertThat(whileRunningToString[0]).contains("my runnable's toString");
   }
 }

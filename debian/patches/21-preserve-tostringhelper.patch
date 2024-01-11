@@ -12,9 +12,9 @@ Forwarded: not-needed
  import com.google.common.annotations.GwtCompatible;
 +import com.google.errorprone.annotations.CanIgnoreReturnValue;
  import java.util.Arrays;
+ import javax.annotation.CheckForNull;
  import org.checkerframework.checker.nullness.qual.Nullable;
- 
-@@ -97,4 +100,333 @@
+@@ -99,4 +102,333 @@
    public static <T> T firstNonNull(@Nullable T first, @Nullable T second) {
      return MoreObjects.firstNonNull(first, second);
    }
