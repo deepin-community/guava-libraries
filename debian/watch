@@ -1,2 +1,3 @@
-version=3
+version=4
+opts="repack,compression=xz" \
 https://github.com/google/guava/tags .*/v([\d\.]+).tar.gz

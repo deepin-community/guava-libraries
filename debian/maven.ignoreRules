@@ -1,10 +1,10 @@
 
+com.google.errorprone error_prone_core * * * *
 com.google.guava guava-gwt jar * * *
 com.google.guava guava-tests jar * * *
 com.google.guava failureaccess * * * *
 com.google.guava listenablefuture * * * *
 com.google.caliper caliper * * * *
-com.google.errorprone error_prone_annotations * * * *
 com.google.j2objc j2objc-annotations * * * *
 org.apache.maven.plugins maven-gpg-plugin * * * *
 org.apache.maven.plugins maven-source-plugin * * * *
@@ -13,3 +13,4 @@ org.codehaus.mojo animal-sniffer-maven-plugin * * * *
 org.easymock easymock * * * *
 org.mockito mockito-core * * * *
 org.sonatype.oss oss-parent * * * *
+

@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.hash.Hashing;
+import com.google.common.io.Closer.LoggingSuppressor;
 import com.google.common.primitives.UnsignedBytes;
 import com.google.common.testing.TestLogHandler;
 import java.io.ByteArrayOutputStream;
@@ -39,6 +40,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.EnumSet;
 import junit.framework.TestSuite;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Tests for the default implementations of {@code ByteSource} methods.
@@ -150,8 +152,8 @@ public class ByteSourceTest extends IoTestCase {
   }
 
   public void testRead_withProcessor_stopsOnFalse() throws IOException {
-    ByteProcessor<Void> processor =
-        new ByteProcessor<Void>() {
+    ByteProcessor<@Nullable Void> processor =
+        new ByteProcessor<@Nullable Void>() {
           boolean firstCall = true;
 
           @Override
@@ -162,7 +164,7 @@ public class ByteSourceTest extends IoTestCase {
           }
 
           @Override
-          public Void getResult() {
+          public @Nullable Void getResult() {
             return null;
           }
         };
@@ -395,7 +397,7 @@ public class ByteSourceTest extends IoTestCase {
       ImmutableSet.of(BROKEN_CLOSE_SINK, BROKEN_OPEN_SINK, BROKEN_WRITE_SINK);
 
   public void testCopyExceptions() {
-    if (!Closer.SuppressingSuppressor.isAvailable()) {
+    if (Closer.create().suppressor instanceof LoggingSuppressor) {
       // test that exceptions are logged
 
       TestLogHandler logHandler = new TestLogHandler();
@@ -472,7 +474,9 @@ public class ByteSourceTest extends IoTestCase {
     }
   }
 
-  /** @return the number of exceptions that were suppressed on the expected thrown exception */
+  /**
+   * @return the number of exceptions that were suppressed on the expected thrown exception
+   */
   private static int runSuppressionFailureTest(ByteSource in, ByteSink out) {
     try {
       in.copyTo(out);

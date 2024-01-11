@@ -19,6 +19,7 @@ import static java.lang.Thread.currentThread;
 import static java.util.Arrays.asList;
 
 import com.google.common.annotations.GwtIncompatible;
+import com.google.common.annotations.J2ktIncompatible;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.collect.Ordering;
@@ -35,20 +36,26 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.CheckForNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /** Static methods used to implement {@link Futures#getChecked(Future, Class)}. */
+@J2ktIncompatible
 @GwtIncompatible
+@ElementTypesAreNonnullByDefault
 final class FuturesGetChecked {
   @CanIgnoreReturnValue
-  static <V, X extends Exception> V getChecked(Future<V> future, Class<X> exceptionClass) throws X {
+  @ParametricNullness
+  static <V extends @Nullable Object, X extends Exception> V getChecked(
+      Future<V> future, Class<X> exceptionClass) throws X {
     return getChecked(bestGetCheckedTypeValidator(), future, exceptionClass);
   }
 
   /** Implementation of {@link Futures#getChecked(Future, Class)}. */
   @CanIgnoreReturnValue
   @VisibleForTesting
-  static <V, X extends Exception> V getChecked(
+  @ParametricNullness
+  static <V extends @Nullable Object, X extends Exception> V getChecked(
       GetCheckedTypeValidator validator, Future<V> future, Class<X> exceptionClass) throws X {
     validator.validateClass(exceptionClass);
     try {
@@ -64,7 +71,8 @@ final class FuturesGetChecked {
 
   /** Implementation of {@link Futures#getChecked(Future, Class, long, TimeUnit)}. */
   @CanIgnoreReturnValue
-  static <V, X extends Exception> V getChecked(
+  @ParametricNullness
+  static <V extends @Nullable Object, X extends Exception> V getChecked(
       Future<V> future, Class<X> exceptionClass, long timeout, TimeUnit unit) throws X {
     // TODO(cpovirk): benchmark a version of this method that accepts a GetCheckedTypeValidator
     bestGetCheckedTypeValidator().validateClass(exceptionClass);
@@ -114,7 +122,6 @@ final class FuturesGetChecked {
 
     static final GetCheckedTypeValidator BEST_VALIDATOR = getBestValidator();
 
-    @IgnoreJRERequirement // getChecked falls back to another implementation if necessary
     @J2ObjCIncompatible // ClassValue
     enum ClassValueValidator implements GetCheckedTypeValidator {
       INSTANCE;
@@ -185,9 +192,12 @@ final class FuturesGetChecked {
      */
     static GetCheckedTypeValidator getBestValidator() {
       try {
-        Class<?> theClass = Class.forName(CLASS_VALUE_VALIDATOR_NAME);
+        Class<? extends Enum> theClass =
+            Class.forName(CLASS_VALUE_VALIDATOR_NAME).asSubclass(Enum.class);
         return (GetCheckedTypeValidator) theClass.getEnumConstants()[0];
-      } catch (Throwable t) { // ensure we really catch *everything*
+      } catch (ClassNotFoundException
+          | RuntimeException
+          | Error t) { // ensure we really catch *everything*
         return weakSetValidator();
       }
     }
@@ -215,7 +225,7 @@ final class FuturesGetChecked {
     try {
       Exception unused = newWithCause(exceptionClass, new Exception());
       return true;
-    } catch (Exception e) {
+    } catch (RuntimeException | Error e) {
       return false;
     }
   }
@@ -225,7 +235,7 @@ final class FuturesGetChecked {
     @SuppressWarnings({"unchecked", "rawtypes"})
     List<Constructor<X>> constructors = (List) Arrays.asList(exceptionClass.getConstructors());
     for (Constructor<X> constructor : preferringStrings(constructors)) {
-      @Nullable X instance = newFromConstructor(constructor, cause);
+      X instance = newFromConstructor(constructor, cause);
       if (instance != null) {
         if (instance.getCause() == null) {
           instance.initCause(cause);
@@ -248,15 +258,12 @@ final class FuturesGetChecked {
   private static final Ordering<Constructor<?>> WITH_STRING_PARAM_FIRST =
       Ordering.natural()
           .onResultOf(
-              new Function<Constructor<?>, Boolean>() {
-                @Override
-                public Boolean apply(Constructor<?> input) {
-                  return asList(input.getParameterTypes()).contains(String.class);
-                }
-              })
+              (Function<Constructor<?>, Boolean>)
+                  input -> asList(input.getParameterTypes()).contains(String.class))
           .reverse();
 
-  private static <X> @Nullable X newFromConstructor(Constructor<X> constructor, Throwable cause) {
+  @CheckForNull
+  private static <X> X newFromConstructor(Constructor<X> constructor, Throwable cause) {
     Class<?>[] paramTypes = constructor.getParameterTypes();
     Object[] params = new Object[paramTypes.length];
     for (int i = 0; i < paramTypes.length; i++) {

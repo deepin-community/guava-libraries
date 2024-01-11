@@ -11,13 +11,14 @@ Build-Depends:
  junit4,
  libanimal-sniffer-java,
  libatinject-jsr330-api-java,
+ liberror-prone-java,
  libjsr305-java,
  libmaven-bundle-plugin-java,
  libmaven-dependency-plugin-java,
  libtruth-java,
  maven-debian-helper,
  zip
-Standards-Version: 4.5.0
+Standards-Version: 4.6.2
 Vcs-Git: https://salsa.debian.org/java-team/guava-libraries.git
 Vcs-Browser: https://salsa.debian.org/java-team/guava-libraries
 Homepage: https://github.com/google/guava
@@ -26,6 +27,7 @@ Package: libguava-java
 Architecture: all
 Depends:
  libatinject-jsr330-api-java,
+ liberror-prone-java,
  libjsr305-java,
  ${misc:Depends}
 Breaks: closure-compiler (<= 20130227+dfsg1-2)

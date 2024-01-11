@@ -9,9 +9,9 @@ Forwarded: not-needed
 
 ---
 
---- guava-libraries-29.0.orig/guava/pom.xml
-+++ guava-libraries-29.0/guava/pom.xml
-@@ -79,7 +79,6 @@
+--- a/guava/pom.xml
++++ b/guava/pom.xml
+@@ -90,7 +90,6 @@
                com.google.common.*
              </Export-Package>
              <Import-Package>

@@ -3,7 +3,7 @@ Author: Emmanuel Bourg <ebourg@apache.org>
 Forwarded: not-needed
 --- a/guava/src/com/google/common/base/Stopwatch.java
 +++ b/guava/src/com/google/common/base/Stopwatch.java
-@@ -131,11 +131,11 @@
+@@ -139,11 +139,11 @@
      return new Stopwatch(ticker).start();
    }
  
@@ -17,7 +17,7 @@ Forwarded: not-needed
      this.ticker = checkNotNull(ticker, "ticker");
    }
  
-@@ -211,6 +211,35 @@
+@@ -219,6 +219,35 @@
    }
  
    /**
@@ -53,7 +53,7 @@ Forwarded: not-needed
     * Returns the current elapsed time shown on this stopwatch as a {@link Duration}. Unlike {@link
     * #elapsed(TimeUnit)}, this method does not lose any precision due to rounding.
     *
-@@ -234,6 +263,27 @@
+@@ -243,6 +272,27 @@
      return Platform.formatCompact4Digits(value) + " " + abbreviate(unit);
    }
  

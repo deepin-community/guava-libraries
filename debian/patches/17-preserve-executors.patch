@@ -3,7 +3,7 @@ Author: Emmanuel Bourg <ebourg@apache.org>
 Forwarded: not-needed
 --- a/guava/src/com/google/common/util/concurrent/MoreExecutors.java
 +++ b/guava/src/com/google/common/util/concurrent/MoreExecutors.java
-@@ -295,6 +295,42 @@
+@@ -300,6 +300,42 @@
              .build());
    }
  
@@ -44,5 +44,5 @@ Forwarded: not-needed
 +  }
 +
    // See newDirectExecutorService javadoc for behavioral notes.
+   @J2ktIncompatible
    @GwtIncompatible // TODO
-   private static final class DirectExecutorService extends AbstractListeningExecutorService {
