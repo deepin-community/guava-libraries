@@ -3,8 +3,8 @@ Author: Emmanuel Bourg <ebourg@apache.org>
 Forwarded: not-needed
 --- a/guava/src/com/google/common/base/Objects.java
 +++ b/guava/src/com/google/common/base/Objects.java
-@@ -76,4 +76,25 @@
-   public static int hashCode(@Nullable Object @Nullable ... objects) {
+@@ -78,4 +78,25 @@
+   public static int hashCode(@CheckForNull @Nullable Object... objects) {
      return Arrays.hashCode(objects);
    }
 +

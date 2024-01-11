@@ -16,7 +16,6 @@
 
 package com.google.common.io;
 
-import static com.google.common.io.Files.touch;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.base.Charsets;
@@ -43,13 +42,19 @@ import junit.framework.TestSuite;
 /**
  * Unit test for {@link Files}.
  *
- * <p>Note: {@link Files#fileTraverser()} is tested in {@link FilesFileTraverserTest}.
+ * <p>Some methods are tested in separate files:
+ *
+ * <ul>
+ *   <li>{@link Files#fileTraverser()} is tested in {@link FilesFileTraverserTest}.
+ *   <li>{@link Files#createTempDir()} is tested in {@link FilesCreateTempDirTest}.
+ * </ul>
  *
  * @author Chris Nokleberg
  */
 
 public class FilesTest extends IoTestCase {
 
+  @AndroidIncompatible // suites, ByteSourceTester (b/230620681)
   public static TestSuite suite() {
     TestSuite suite = new TestSuite();
     suite.addTest(
@@ -196,7 +201,7 @@ public class FilesTest extends IoTestCase {
     File temp2 = createTempFile();
     Files.write(ASCII, temp2, Charsets.UTF_8);
     Files.copy(temp1, temp2);
-    assertEquals(ASCII, Files.toString(temp1, Charsets.UTF_8));
+    assertEquals(ASCII, Files.toString(temp2, Charsets.UTF_8));
   }
 
   public void testEqual() throws IOException {
@@ -356,14 +361,6 @@ public class FilesTest extends IoTestCase {
       fail();
     } catch (IOException expected) {
     }
-  }
-
-  public void testCreateTempDir() {
-    File temp = Files.createTempDir();
-    assertTrue(temp.exists());
-    assertTrue(temp.isDirectory());
-    assertThat(temp.listFiles()).isEmpty();
-    assertTrue(temp.delete());
   }
 
   public void testMove() throws IOException {

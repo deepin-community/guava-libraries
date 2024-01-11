@@ -17,16 +17,18 @@
 package com.google.common.collect;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import jsinterop.annotations.JsMethod;
 import jsinterop.annotations.JsPackage;
 import jsinterop.annotations.JsProperty;
 import jsinterop.annotations.JsType;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Minimal GWT emulation of {@code com.google.common.collect.Platform}.
- *
- * <p><strong>This .java file should never be consumed by javac.</strong>
  *
  * @author Hayward Chan
  */
@@ -41,6 +43,14 @@ final class Platform {
 
   static <E> Set<E> newHashSetWithExpectedSize(int expectedSize) {
     return Sets.newHashSetWithExpectedSize(expectedSize);
+  }
+
+  static <E> Set<E> newConcurrentHashSet() {
+    // GWT's ConcurrentHashMap is a wrapper around HashMap, but it rejects null keys, which matches
+    // the behaviour of the non-GWT implementation of newConcurrentHashSet().
+    // On the other hand HashSet might be better for code size if apps aren't
+    // already using Collections.newSetFromMap and ConcurrentHashMap.
+    return Collections.newSetFromMap(new ConcurrentHashMap<E, Boolean>());
   }
 
   static <E> Set<E> newLinkedHashSetWithExpectedSize(int expectedSize) {
@@ -64,13 +74,8 @@ final class Platform {
   }
 
   static <T> T[] newArray(T[] reference, int length) {
-    T[] clone = Arrays.copyOf(reference, 0);
-    resizeArray(clone, length);
-    return clone;
-  }
-
-  private static void resizeArray(Object array, int newSize) {
-    ((NativeArray) array).setLength(newSize);
+    T[] empty = reference.length == 0 ? reference : Arrays.copyOf(reference, 0);
+    return Arrays.copyOf(empty, length);
   }
 
   /** Equivalent to Arrays.copyOfRange(source, from, to, arrayOfType.getClass()). */
@@ -90,6 +95,19 @@ final class Platform {
   static MapMaker tryWeakKeys(MapMaker mapMaker) {
     return mapMaker;
   }
+
+  static <E extends Enum<E>> Class<E> getDeclaringClassOrObjectForJ2cl(E e) {
+    Class<E> classOrNull = getDeclaringClassOrNullForJ2cl(e);
+    @SuppressWarnings("unchecked")
+    Class<E> result = classOrNull == null ? (Class<E>) (Class<?>) Object.class : classOrNull;
+    return result;
+  }
+
+  @JsMethod
+  private static native <E extends Enum<E>> @Nullable Class<E> getDeclaringClassOrNullForJ2cl(
+      E e) /*-{
+    return e.@java.lang.Enum::getDeclaringClass()();
+  }-*/;
 
   static int reduceIterationsIfGwt(int iterations) {
     return iterations / 10;

@@ -3,7 +3,7 @@ Author: Emmanuel Bourg <ebourg@apache.org>
 Forwarded: not-needed
 --- a/guava/src/com/google/common/base/CharMatcher.java
 +++ b/guava/src/com/google/common/base/CharMatcher.java
-@@ -288,6 +288,188 @@
+@@ -290,6 +290,188 @@
      return SingleWidth.INSTANCE;
    }
  

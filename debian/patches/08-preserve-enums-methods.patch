@@ -3,7 +3,7 @@ Author: Emmanuel Bourg <ebourg@apache.org>
 Forwarded: not-needed
 --- a/guava/src/com/google/common/base/Enums.java
 +++ b/guava/src/com/google/common/base/Enums.java
-@@ -55,6 +55,62 @@
+@@ -58,6 +58,62 @@
      }
    }
  
